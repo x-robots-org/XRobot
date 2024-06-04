@@ -148,6 +148,22 @@ Robot::ArmEngineer::Param param = {
           Device::DR16::DR16_SW_R_POS_BOT,
           Module::RobotArm::SET_MODE_WORK_BOT
         },
+        Component::CMD::EventMapItem{
+          Device::DR16::DR16_SW_L_POS_BOT,
+          Module::RobotArm::SET_MODE_XIKUANG
+        },
+        Component::CMD::EventMapItem{
+        Device::DR16::KEY_R,
+        Module::RobotArm::SET_MODE_YINKUANG
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::KEY_Z,
+        Module::RobotArm::SET_MODE_SAFE
+      },
+            Component::CMD::EventMapItem{
+        Device::DR16::KEY_C,
+        Module::RobotArm::SET_MODE_DIMIAN
+      },
   },
   .roll2_actr={
 .speed = {
@@ -179,45 +195,45 @@ Robot::ArmEngineer::Param param = {
 
 .yaw1_motor={
 .id = 01,
-.can = BSP_CAN_1,
+.can = BSP_CAN_2,
 .feedback_id = 0,
 .reverse = 0,
 },
 .pitch1_motor={
  .id = 02,
-.can = BSP_CAN_1,
+.can = BSP_CAN_2,
 .feedback_id = 1,
 .reverse = 0,
 },
 .pitch2_motor={
   .id = 03,
-.can = BSP_CAN_3,
+.can = BSP_CAN_1,
 .feedback_id = 2,
 .reverse = 0,
 },
 .roll1_motor={
   .id = 04,
-.can = BSP_CAN_2,
+.can = BSP_CAN_1,
 .feedback_id = 3,
 .reverse = 0,
 },
 .yaw2_motor={
   .id = 05,
-.can = BSP_CAN_2,
+.can = BSP_CAN_1,
 .feedback_id = 4,
-.reverse = 0,
+.reverse = 1,
 },
 
 .roll2_motor={
         .id_feedback = 0x208,
         .id_control = GM6020_CTRL_ID_BASE,
         .model = Device::RMMotor::MOTOR_GM6020,
-        .can = BSP_CAN_2,
+        .can = BSP_CAN_1,
 },
 
 .limit = {
         .yaw1_max = 0.0f,
-        .yaw1_min =-6.28f,
+        .yaw1_min =-7.5f,
         .pitch1_max = 3.5f,
         .pitch1_min = 0.0f,
         .pitch2_max = 0.0f,
@@ -232,11 +248,11 @@ Robot::ArmEngineer::Param param = {
 .cust_ctrl = {
   .offset = {
     -6.28f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f
+    -1+0.1f,
+    -0.10f,
+    -0.20+0.1f,
+    -3.82+0.1f,
+    -4.29f
   }
 }
 },

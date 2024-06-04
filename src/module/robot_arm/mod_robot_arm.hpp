@@ -1,6 +1,7 @@
 #include <comp_cmd.hpp>
 #include <vector>
 
+#include "bsp_gpio.h"
 #include "comp_actuator.hpp"
 #include "comp_cmd.hpp"
 #include "comp_pid.hpp"
@@ -22,6 +23,9 @@ class RobotArm {
     WORK_BOT,
     WORK_CUSTOM_CTRL,
     SAFE,
+    XIKUANG,
+    YINKUANG,
+    DIMIAN
   } Mode;
 
   typedef enum {
@@ -30,6 +34,10 @@ class RobotArm {
     SET_MODE_WORK_MID,
     SET_MODE_WORK_BOT,
     SET_MODE_SAFE,
+    SET_MODE_CUSTOM_CTRL,
+    SET_MODE_XIKUANG,
+    SET_MODE_YINKUANG,
+    SET_MODE_DIMIAN
   } RobotArmEvent;
 
   typedef struct Param {
@@ -90,11 +98,11 @@ class RobotArm {
 
   Device::CustomController custom_ctrl_;
 
-  bool yaw1_able_ = 1;
-  bool pitch1_able_ = 1;
-  bool pitch2_able_ = 1;
-  bool roll1_able_ = 1;
-  bool yaw2_able_ = 1;
+  bool yaw1_able_ = 0;
+  bool pitch1_able_ = 0;
+  bool pitch2_able_ = 0;
+  bool roll1_able_ = 0;
+  bool yaw2_able_ = 0;
 
   System::Thread thread_;
 
@@ -109,6 +117,8 @@ class RobotArm {
   } setpoint_; /*用于接收控制器发来的各关节角度*/
 
   float setpoint_roll2_;
+
+  bool state_ = 0;
 
   Component::CMD::GimbalCMD cmd_;
 };

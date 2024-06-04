@@ -34,6 +34,9 @@ RobotArm::RobotArm(Param& param, float control_freq)
       case SET_MODE_WORK_TOP:
         robotarm->SetMode(WORK_TOP);
         break;
+      case SET_MODE_CUSTOM_CTRL:
+        robotarm->SetMode(WORK_CUSTOM_CTRL);
+        break;
       case SET_MODE_WORK_MID:
         robotarm->SetMode(WORK_MID);
         break;
@@ -42,6 +45,15 @@ RobotArm::RobotArm(Param& param, float control_freq)
         break;
       case SET_MODE_SAFE:
         robotarm->SetMode(SAFE);
+        break;
+      case SET_MODE_XIKUANG:
+        robotarm->SetMode(XIKUANG);
+        break;
+      case SET_MODE_YINKUANG:
+        robotarm->SetMode(YINKUANG);
+        break;
+      case SET_MODE_DIMIAN:
+        robotarm->SetMode(DIMIAN);
         break;
       default:
         break;
@@ -118,45 +130,15 @@ void RobotArm::Control() {
 
   this->last_wakeup_ = this->now_;
 
-  // this->setpoint_.yaw1_theta_ = this->cmd_.theta.yaw1;
-  // this->setpoint_.pitch1_theta_ = this->cmd_.theta.pitch1;
-  // this->setpoint_.pitch2_theta_ = this->cmd_.theta.pitch2;
-  // this->setpoint_.pitch3_theta_ = this->cmd_.theta.pitch3;
-  // this->setpoint_.yaw2_theta_ = this->cmd_.theta.yaw2;
-  // this->setpoint_.roll_theta_ = this->cmd_.theta.roll;
-
   float pit_cmd = 0.0f;
   float yaw_cmd = 0.0f;
 
-  yaw_cmd = this->cmd_.eulr.yaw * this->dt_;
-  pit_cmd = this->cmd_.eulr.pit * this->dt_;
-
-  /*电机限幅*/
-  // clampf(&(this->setpoint_.yaw1_theta_), this->param_.limit.yaw1_min,
-  //        this->param_.limit.yaw1_max);
-  // clampf(&(this->setpoint_.pitch1_theta_), this->param_.limit.pitch1_min,
-  //        this->param_.limit.pitch1_max);
-  // clampf(&(this->setpoint_.pitch2_theta_), this->param_.limit.pitch2_min,
-  //        this->param_.limit.pitch2_max);
-  // clampf(&(this->setpoint_.roll1_theta_), this->param_.limit.roll1_min,
-  //        this->param_.limit.roll1_max);
-  // clampf(&(this->setpoint_.yaw2_theta_), this->param_.limit.yaw2_min,
-  //        this->param_.limit.yaw2_max);
-
-  // this->yaw1_motor_.SetPosSpeed(this->setpoint_.yaw1_theta_, 0.1f);
-  // this->pitch1_motor_.SetPosSpeed(this->setpoint_.pitch1_theta_, 0.3f);
-  // this->pitch2_motor_.SetPosSpeed(this->setpoint_.pitch2_theta_, 0.3f);
-  // this->roll1_motor_.SetPosSpeed(this->setpoint_.roll1_theta_, 0.3f);
-  // this->yaw2_motor_.SetPosSpeed(this->setpoint_.yaw2_theta_, 0.3f);
-
-  // float roll2_out = this->roll2_actr_.Calculate(
-  //     this->setpoint_roll2_, this->roll2_motor_.GetSpeed(),
-  //     this->roll2_motor_.GetAngle(), this->dt_);
-  // this->roll2_motor_.Control(roll2_out);
+  yaw_cmd = this->cmd_.eulr.yaw * this->dt_ * (0.7);
+  pit_cmd = this->cmd_.eulr.pit * this->dt_ * (0.7);
 
   switch (this->mode_) {
     case RobotArm::WORK_BOT: {
-      this->setpoint_.yaw1_theta_ += yaw_cmd;
+      this->setpoint_.yaw1_theta_ += 2 * yaw_cmd;
       this->setpoint_.pitch1_theta_ += pit_cmd;
 
       clampf(&(this->setpoint_.yaw1_theta_), this->param_.limit.yaw1_min,
@@ -164,19 +146,19 @@ void RobotArm::Control() {
       clampf(&(this->setpoint_.pitch1_theta_), this->param_.limit.pitch1_min,
              this->param_.limit.pitch1_max);
 
-      this->yaw1_motor_.SetPosSpeed(this->setpoint_.yaw1_theta_, 0.1f);
-      this->pitch1_motor_.SetPosSpeed(this->setpoint_.pitch1_theta_, 0.3f);
+      this->yaw1_motor_.SetPosSpeed(this->setpoint_.yaw1_theta_, 1.6f);
+      this->pitch1_motor_.SetPosSpeed(this->setpoint_.pitch1_theta_, 0.8f);
       break;
     }
     case RobotArm::WORK_MID: {
-      this->setpoint_.roll1_theta_ += yaw_cmd;
+      this->setpoint_.roll1_theta_ += 2 * yaw_cmd;
       this->setpoint_.pitch2_theta_ += pit_cmd;
 
       clampf(&(this->setpoint_.pitch2_theta_), this->param_.limit.pitch2_min,
              this->param_.limit.pitch2_max);
 
-      this->pitch2_motor_.SetPosSpeed(this->setpoint_.pitch2_theta_, 0.3f);
-      this->roll1_motor_.SetPosSpeed(this->setpoint_.roll1_theta_, 0.3f);
+      this->pitch2_motor_.SetPosSpeed(this->setpoint_.pitch2_theta_, 0.8f);
+      this->roll1_motor_.SetPosSpeed(this->setpoint_.roll1_theta_, 1.6f);
       break;
     }
     case RobotArm::WORK_TOP: {
@@ -187,7 +169,7 @@ void RobotArm::Control() {
       clampf(&(this->setpoint_.yaw2_theta_), this->param_.limit.yaw2_min,
              this->param_.limit.yaw2_max);
 
-      this->yaw2_motor_.SetPosSpeed(this->setpoint_.yaw2_theta_, 0.3f);
+      this->yaw2_motor_.SetPosSpeed(this->setpoint_.yaw2_theta_, 0.8f);
 
       float roll2_out = this->roll2_actr_.Calculate(
           this->setpoint_roll2_, this->roll2_motor_.GetSpeed(),
@@ -197,6 +179,44 @@ void RobotArm::Control() {
       break;
     }
     case RobotArm::SAFE: {
+      this->setpoint_.pitch1_theta_ = 0;
+      this->setpoint_.pitch2_theta_ = 0;
+      this->setpoint_.yaw1_theta_ = 0;
+      this->setpoint_.yaw2_theta_ = 0;
+      this->setpoint_.roll1_theta_ = 0;
+      this->yaw1_motor_.SetPosSpeed(0, 0.6f);
+      this->pitch1_motor_.SetPosSpeed(0, 0.5f);
+      this->yaw2_motor_.SetPosSpeed(0, 0.6f);
+      this->pitch2_motor_.SetPosSpeed(0, 0.5f);
+      this->roll1_motor_.SetPosSpeed(0, 0.5f);
+      break;
+    }
+
+    case RobotArm::YINKUANG: {
+      this->setpoint_.pitch1_theta_ = 2.056f;
+      this->setpoint_.pitch2_theta_ = -0.939f;
+      this->setpoint_.yaw1_theta_ = 0;
+      this->setpoint_.yaw2_theta_ = 0;
+      this->setpoint_.roll1_theta_ = 0;
+      this->yaw1_motor_.SetPosSpeed(0, 0.6f);
+      this->pitch1_motor_.SetPosSpeed(2.056f, 0.5f);
+      this->yaw2_motor_.SetPosSpeed(0, 0.6f);
+      this->pitch2_motor_.SetPosSpeed(-0.939f, 0.5f);
+      this->roll1_motor_.SetPosSpeed(0.0f, 0.5f);
+      break;
+    }
+
+    case RobotArm::DIMIAN: {
+      this->setpoint_.pitch1_theta_ = 3.426f;
+      this->setpoint_.pitch2_theta_ = -1.426f;
+      this->setpoint_.yaw1_theta_ = 0;
+      this->setpoint_.yaw2_theta_ = 0.7546;
+      this->setpoint_.roll1_theta_ = 0;
+      this->yaw1_motor_.SetPosSpeed(0, 0.6f);
+      this->pitch1_motor_.SetPosSpeed(3.426f, 0.5f);
+      this->yaw2_motor_.SetPosSpeed(0.7546f, 0.6f);
+      this->pitch2_motor_.SetPosSpeed(-1.426f, 0.5f);
+      this->roll1_motor_.SetPosSpeed(0.0f, 0.5f);
       break;
     }
 
@@ -208,6 +228,15 @@ void RobotArm::Control() {
       this->yaw2_able_ = 0;
       this->roll2_motor_.Relax();
       break;
+
+    case RobotArm::XIKUANG:
+      if (this->state_ == 0) {
+        bsp_gpio_write_pin(BSP_GPIO_SWITCH, 0);
+      } else {
+        bsp_gpio_write_pin(BSP_GPIO_SWITCH, 1);
+      };
+      break;
+
     case RobotArm::WORK_CUSTOM_CTRL:
       if (custom_ctrl_.online_) {
         this->setpoint_.yaw1_theta_ = custom_ctrl_.data_.angle[0];
@@ -218,17 +247,17 @@ void RobotArm::Control() {
         clampf(&(this->setpoint_.pitch1_theta_), this->param_.limit.pitch1_min,
                this->param_.limit.pitch1_max);
 
-        this->yaw1_motor_.SetPosSpeed(this->setpoint_.yaw1_theta_, 0.1f);
-        this->pitch1_motor_.SetPosSpeed(this->setpoint_.pitch1_theta_, 0.3f);
+        this->yaw1_motor_.SetPosSpeed(this->setpoint_.yaw1_theta_, 0.6f);
+        this->pitch1_motor_.SetPosSpeed(this->setpoint_.pitch1_theta_, 0.5f);
 
-        this->setpoint_.roll1_theta_ = custom_ctrl_.data_.angle[2];
-        this->setpoint_.pitch2_theta_ = custom_ctrl_.data_.angle[3];
+        this->setpoint_.roll1_theta_ = custom_ctrl_.data_.angle[3];
+        this->setpoint_.pitch2_theta_ = -custom_ctrl_.data_.angle[2];
 
         clampf(&(this->setpoint_.pitch2_theta_), this->param_.limit.pitch2_min,
                this->param_.limit.pitch2_max);
 
-        this->pitch2_motor_.SetPosSpeed(this->setpoint_.pitch2_theta_, 0.3f);
-        this->roll1_motor_.SetPosSpeed(this->setpoint_.roll1_theta_, 0.3f);
+        this->pitch2_motor_.SetPosSpeed(this->setpoint_.pitch2_theta_, 0.5f);
+        this->roll1_motor_.SetPosSpeed(this->setpoint_.roll1_theta_, 0.5f);
 
         this->setpoint_.yaw2_theta_ = custom_ctrl_.data_.angle[4];
         this->setpoint_roll2_ = custom_ctrl_.data_.angle[5];
@@ -236,7 +265,7 @@ void RobotArm::Control() {
         clampf(&(this->setpoint_.yaw2_theta_), this->param_.limit.yaw2_min,
                this->param_.limit.yaw2_max);
 
-        this->yaw2_motor_.SetPosSpeed(this->setpoint_.yaw2_theta_, 0.3f);
+        this->yaw2_motor_.SetPosSpeed(this->setpoint_.yaw2_theta_, 0.5f);
 
         float roll2_out = this->roll2_actr_.Calculate(
             this->setpoint_roll2_, this->roll2_motor_.GetSpeed(),
@@ -252,9 +281,6 @@ void RobotArm::Control() {
       }
 
       break;
-      // default:
-      //   XB_ASSERT(false);
-      //   return;
   }
 }
 
@@ -263,6 +289,13 @@ void RobotArm::SetMode(RobotArm::Mode mode) {
     return;
   }
   if (mode == WORK_BOT) {
+    this->yaw1_able_ = 1;
+    this->pitch1_able_ = 1;
+    this->pitch2_able_ = 1;
+    this->roll1_able_ = 1;
+    this->yaw2_able_ = 1;
+  }
+  if (mode == WORK_CUSTOM_CTRL) {
     this->yaw1_able_ = 1;
     this->pitch1_able_ = 1;
     this->pitch2_able_ = 1;
@@ -282,6 +315,9 @@ void RobotArm::SetMode(RobotArm::Mode mode) {
     this->pitch2_able_ = 1;
     this->roll1_able_ = 1;
     this->yaw2_able_ = 1;
+  }
+  if (mode == XIKUANG) {
+    this->state_ = !this->state_;
   }
   this->mode_ = mode;
 }
